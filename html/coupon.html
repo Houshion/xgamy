@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>优惠券</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../js/drop/dropload.css" />
+    <style>
+        .left{
+           height:2.02rem;
+            padding-right:62%;
+            padding-left:6%;
+            width:100%;
+            background:url("../img/youhuiquan.png")no-repeat center center;
+            background-size:6.62rem 2.02rem;
+        }
+        .font10{
+            font-size:0.1rem;
+        }
+        .right{
+            height:2.02rem;
+            padding-right:62%;
+            padding-left:6%;
+            width:100%;
+            background:url("../img/youhuiquan1.png")no-repeat center center;
+            background-size:6.62rem 2.02rem;
+        }
+
+    </style>
+</head>
+<body class="bw">
+    <div id="wrap">
+        <div class="mt30 ul">
+
+        </div>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script type="text/javascript" src="../js/drop/dropload.min.js"></script>
+<script>
+
+    <!--优惠券-->
+    $(function(){
+        var page = 0;
+        var pagesize = 10;
+        $('#wrap').dropload({
+            scrollArea : window,
+            domUp : {
+                domClass   : 'dropload-up',
+                domRefresh : '<div class="dropload-refresh">↓下拉刷新</div>',
+                domUpdate  : '<div class="dropload-update">↑释放更新</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>'
+            },
+            domDown : {
+                domClass   : 'dropload-down',
+                domRefresh : '<div class="dropload-refresh">↑上拉加载更多</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>',
+                domNoData  : '<div class="dropload-noData">暂无更多数据</div>'
+            },
+            loadUpFn : function(me){
+                dlc_request('/Wxsite/Device/api',{'api_name':'get_user_coupon','page':1,'pagesize':pagesize}, function(res){
+                    console.log(res.data);
+                    if(res.code == 1){
+                        var res = res.data;
+                        var str = '';
+                        for( var i in res){
+                            str+='<p class="mb20 flex_aj flex_column colw '+(res[i].status_name=="未使用"?"left":"right")+'" data-coupon="'+res[i].id+'" data-type="'+res[i].status_name+'">\n' +
+                                '<span>￥<em class="font21">'+res[i].coupon_money+'</em></span>\n' +
+                                '<span class="plr20 font10 mt10">有效期:'+date("Y-m-d H:i:s",res[i].etime)+'</span>\n' +
+                                '</p>'
+                        }
+                        setTimeout(function(){
+                            $('.ul').html(str);
+                            me.resetload();
+                            page = 1;
+                            me.unlock();
+                            me.noData(false);
+                        },1000);
+                    }else if(res.code==-1){
+
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            loadDownFn : function(me){
+                page++;
+                dlc_request('/Wxsite/Device/api',{'api_name':'get_user_coupon','page':page,'pagesize':pagesize}, function(ret){
+                    console.log(ret.data);
+                    if(ret.code == 1){
+                        var res = ret.data;
+                        var str = '';
+                        if(res.length>0){
+                            for( var i in res){
+                                str+='<p class="mb20 flex_aj flex_column colw '+(res[i].status_name=="未使用"?"left":"right")+'" data-coupon="'+res[i].id+'" data-type="'+res[i].status_name+'">\n' +
+                                    '<span>￥<em class="font21">'+res[i].coupon_money+'</em></span>\n' +
+                                    '<span class="plr20 font10 mt10">有效期:'+date("Y-m-d H:i:s",res[i].etime)+'</span>\n' +
+                                    '</p>'
+                            }
+                        }else{
+                            me.lock();
+                            me.noData();
+                        }
+                        // 为了测试，延迟1秒加载
+                        setTimeout(function(){
+                            $('.ul').append(str);
+                            me.resetload();
+                        },1000);
+                    }else if(ret.code==-1){
+                        dlctipbox.show('登录超时，请重新登录')
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            threshold : 50
+        });
+    });
+
+    // $('.ul').on('click','p',function(){
+    //     location.replace('confirmOrder.html?coupon='+$(this).data('coupon')+'&macon='+getUrlParam('macon')+'&meal_id='+getUrlParam('meal_id'));
+    // });
+
+</script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>跳转中</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+</head>
+<body>
+
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+var macno = getUrlParam('macno');
+var pid = getUrlParam('pid');
+dlctipbox.loading();
+dlc_request('/Wxsite/Device/api',{api_name:'free',macno:macno,pid:pid},function(res){
+    if(res.code == 1) { //请求成功
+        var times = setInterval("pollGetStatus("+res.data+","+pid+")",1500);
+    } else {
+        dlctipbox.clear();
+        dlctipbox.alert(res.msg,function(flag){
+           if(flag){
+               WeixinJSBridge.call('closeWindow');
+           }
+       })
+    }
+})
+
+function pollGetStatus(order_id,pid){
+    dlc_request('/Wxsite/Device/api',{api_name:'get_order_status',order_id:order_id},function(result){
+        var status = result.data.status;
+        if(status != 2) { //处理免费体验的订单
+            dlc_request('/Wxsite/Device/api',{api_name:'free_handle',order_id:order_id,pid:pid});
+        }
+        if(status == 3) { //开启成功
+            location.href='daojishi.html?order_id='+order_id+'&macno='+macno;
+        }else if(status == 2){ //等待硬件返回
+            return true;
+        }else if(status == -5){ //开启失败
+            dlctipbox.clear();
+            dlctipbox.alert("开启失败，请重试",function(flag){
+               if(flag){
+                   WeixinJSBridge.call('closeWindow');
+               }
+            })
+        }
+    })
+}
+
+</script>

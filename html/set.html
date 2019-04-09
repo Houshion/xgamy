@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>选择套餐</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/swiper.min.css">
+    <style>
+
+        img{
+            height:3.2rem;
+        }
+        .p{
+            background:url("../img/anmoyi.png")no-repeat 2% center;
+            background-size:0.39rem 0.35rem;
+            background-color:#fff;
+        }
+        .set{
+            color:#999;
+            height:1.28rem;
+            width:4.5rem;
+            margin-bottom:0.3rem;
+            background:url("../img/choose.png")no-repeat center center;
+            background-size:4.48rem 1.27rem;
+        }
+        .a{
+            padding-bottom: 8%;
+        }
+        .price{
+            font-size:0.66rem;
+        }
+        .confirm{
+            display: block;
+            width: 90%;
+            height: 0.9rem;
+            border: none;
+            outline: none;
+            border-radius: 0.5rem;
+            margin:0 auto;
+        }
+
+        /*轮播图*/
+        .swiper-container {
+            width: 100%;
+            height: 3.2rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /*弹出层*/
+        #mask{
+            background: #fff;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="mb60">
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+
+            </div>
+            <!-- Add Pagination -->
+            <div class="swiper-pagination"></div>
+        </div>
+        <div class="plr10 ptb20">
+            <p class="flex_sb ptb30 plr20 p border-r1 mb20"><span style="padding-left:0.6rem;">设备编号</span><span class="m"></span></p>
+            <div class="bw border-r1">
+                <p class="pl30 pt30">请选择套餐</p>
+                <div class="flex_a flex_column pt30 chooset">
+                    <!--<p class="set flex_sb plr30"><span class="font15 a">合适放松</span><span><em class="price">15</em>元/<em>30</em>分钟</span></p>-->
+                    <!--<p class="set flex_sb plr30"><span class="font15 a">疲劳恢复</span><span><em class="price">20</em>元/<em>40</em>分钟</span></p>-->
+                    <!--<p class="set flex_sb plr30"><span class="font15 a">合适放松</span><span><em class="price">25</em>元/<em>60</em>分钟</span></p>-->
+                </div>
+            </div>
+        </div>
+        <!--<p class="flex_aj mb60 append">-->
+            <!--<img src="../img/gou.png" alt="" style="width:0.32rem;height:0.32rem;"><em class="ml30 col9">同意服务协议</em>-->
+        <!--</p>-->
+        <button class="confirm bgmm colw font15">确认</button>
+    </div>
+    <!--<div id="mask">-->
+        <!--<p class="xieyi plr20 bw"></p>-->
+    <!--</div>-->
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script src="../js/swiper.min.js"></script>
+<script>
+
+    var id;
+    var price;
+    var m;
+    var na;
+    var order_id;
+   $('.chooset').on('click','.set',function(){
+       $(this).css('background-image','url(../img/choose1.png)').siblings().css('background-image','url(../img/choose.png)');
+       $(this).css('color','#fff').siblings().css('color','#999');
+        id=$(this).data('id');
+        price=$(this).data('price');
+        m = $(this).data('m');
+        na = $(this).find('.a').text();
+   });
+    $('.m').text(getUrlParam('macno'));
+//    获取按摩套餐
+   dlc_request('/Wxsite/Device/api',{api_name:'get_device_pack',macno:getUrlParam('macno')},function (res) {
+       console.log(res);
+       // alert(JSON.stringify(res));
+       if(res.code==1){
+               var html='';
+               for(var i in res.data){
+                   html+='<p class="set flex_sb plr30" data-id="'+res.data[i].id+'" data-price="'+res.data[i].price+'" data-m="'+res.data[i].minute+'"><span class="font15 a">'+res.data[i].name+'</span><span><em class="price">'+res.data[i].price+'</em>元/<em class="tm">'+res.data[i].minute+'</em>分钟</span></p>'
+               }
+               $('.chooset').append(html);
+       }else if(res.code==0){
+           dlctipbox.show(res.msg);
+           setTimeout(function(){
+               if(isWX_Allipay()=='2'){
+                   WeixinJSBridge.call('closeWindow');
+                   return false;
+               }else if(isWX_Allipay()=='3'){
+                   function ready(callback) {
+                       // 如果jsbridge已经注入则直接调用
+                       if (window.AlipayJSBridge) {
+                           callback && callback();
+                       } else {
+                           // 如果没有注入则监听注入的事件
+                           document.addEventListener('AlipayJSBridgeReady', callback, false);
+                       }
+                   }
+                   ready(function() {
+                       AlipayJSBridge.call('exitApp');
+                   });
+                   return false
+               }
+           },1500)
+
+       }else if(res.code==7){
+           dlctipbox.show(res.msg);
+           setTimeout(function(){
+               if(isWX_Allipay()=='2'){
+                   WeixinJSBridge.call('closeWindow');
+                   return false;
+               }else if(isWX_Allipay()=='3'){
+                   function ready(callback) {
+                       // 如果jsbridge已经注入则直接调用
+                       if (window.AlipayJSBridge) {
+                           callback && callback();
+                       } else {
+                           // 如果没有注入则监听注入的事件
+                           document.addEventListener('AlipayJSBridgeReady', callback, false);
+                       }
+                   }
+                   ready(function() {
+                       AlipayJSBridge.call('exitApp');
+                   });
+                   return false
+               }
+           },1500)
+
+       }
+       else if(res.code==88){
+           order_id = res.data.order_id;
+           location.href='daojishi.html?macno='+getUrlParam('macno')+'&order_id='+order_id;
+       }
+   });
+
+//    下单
+    $('.confirm').click(function(){
+        if(id){
+            location.href='confirmOrder.html?meal_id='+id+'&macno='+$('.m').text()+'&price='+price+'&m='+m+'&na='+encodeURIComponent(encodeURIComponent(na));
+        }else{
+            dlctipbox.show('请选择套餐');
+        }
+    });
+
+    // 轮播图
+    var swiper = new Swiper('.swiper-container', {
+        pagination: '.swiper-pagination',
+        slidesPerView: 1,
+        paginationClickable: true,
+        spaceBetween: 5,
+        observeParents:true,
+        loop: true,
+        autoplay:2000
+    });
+
+//    轮播图
+    dlc_request('/wxsite/home/index',{'api_name':'item_banner'}, function(res){
+        console.log(res);
+        if(res.code==1){
+            var html='';
+            for(var i in res.data){
+                html+='<img src="'+res.data[i]+'" class="swiper-slide" />'
+            }
+        };
+        swiper.appendSlide(html);
+    });
+
+//    协议
+//     dlc_request('/Wxsite/Home/index',{'api_name':'get_protocol','type':"1"}, function(res){
+//         console.log(res);
+//        if(res.code==1){
+//            $('.xieyi').html(res.data);
+//        }
+//     });
+//
+// //    点击弹出协议
+//     $('.append').click(function(){
+//         $('#mask').show();
+//     });
+//
+// //    点击关闭协议
+//     $('#mask').on('click','.xieyi',function(){
+//         $('#mask').hide();
+//     });
+
+</script>

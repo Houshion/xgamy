@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>设备详情</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        .f2c76a{
+            color:#f2c76a;
+        }
+        ul{
+            width:95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex_a flex_column">
+        <p class="bw ptb30 W100 tac mb20"><span class="address"></span><em class="f2c76a online_status"></em></p>
+        <div class="mlr24 W100 flex_a flex_column">
+            <ul class="bw flex flex_column plr60 border-r1">
+                <li class="flex_sb W100 mt30 mb20"><span class="flex_a flex_column mb10"><em class="col9">设备编号</em><em class="macno"></em></span><span class="flex_a flex_column"><em class="col9">区域名称</em><em class="area_name"></em></span></li>
+                <li class="flex flex_column W100 mt30 mb20 mb10"><span class="col9">添加时间</span><span class="ctime"></span></li>
+                <li class="flex flex_column W100 mt30 mb20 mb10"><span class="col9">设备地址</span><span class="addr"></span></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    var macno = getUrlParam('macno');
+    dlctipbox.loading();
+    dlc_request('/Wxsite/Agent/api',{'api_name':'device_detail','macno':macno},function(res){
+        console.log(res);
+        dlctipbox.clear();
+        if(res.code==1){
+            $('.address').text(res.data.title);
+            $('.online_status').text(res.data.online_status==0?"(离线)":"(在线)");
+            $('.macno').text(res.data.macno);
+            $('.area_name').text(res.data.area_name);
+            $('.ctime').text(format(res.data.ctime,'Y-m-d H:i:s'));
+            $('.addr').text(res.data.address)
+        }else{
+            dlctipbox.show(res.msg)
+        }
+    })
+</script>

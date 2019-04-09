@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的订单</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../js/drop/dropload.css" />
+    <style>
+        .color{
+            color:#88e2e1;
+        }
+    </style>
+</head>
+<body>
+<div id="wrap">
+    <ul class="plr30 pt30">
+        <!--<li class="flex_sb ptb30 bw mt30 plr24 border-r1 item">-->
+            <!--<span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em class="col9">编号:585236</em></span>-->
+            <!--<span class="font18 color">+ 562.00</span>-->
+        <!--</li>-->
+        <!--<li class="flex_sb ptb30 bw mt30 plr24 border-r1 item">-->
+            <!--<span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em class="col9">编号:585236</em></span>-->
+            <!--<span class="font18 color">+ 562.00</span>-->
+        <!--</li>-->
+    </ul>
+</div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script type="text/javascript" src="../js/drop/dropload.min.js"></script>
+<script>
+
+    $(function(){
+        var page = 0;
+        var pagesize = 10;
+        $('#wrap').dropload({
+            scrollArea : window,
+            domUp : {
+                domClass   : 'dropload-up',
+                domRefresh : '<div class="dropload-refresh">↓下拉刷新</div>',
+                domUpdate  : '<div class="dropload-update">↑释放更新</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>'
+            },
+            domDown : {
+                domClass   : 'dropload-down',
+                domRefresh : '<div class="dropload-refresh">↑上拉加载更多</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>',
+                domNoData  : '<div class="dropload-noData">暂无更多数据</div>'
+            },
+            loadUpFn : function(me){
+                dlc_request('/Wxsite/Agent/api',{'api_name':'my_order','page':1,'pagesize':pagesize}, function(res){
+                    console.log(res.data);
+                    if(res.code == 1){
+                        var res = res.data;
+                        var str = '';
+                        for( var i in res){
+                            str+='<li class="flex_sb ptb30 bw mt30 plr24 border-r1 item" data-id="'+res[i].order_id+'">' +
+                                '<span class="flex_a flex_column"><em class="mb10">'+res[i].title+'</em><em class="col9">编号:'+res[i].macno+'</em></span>' +
+                                '<span class="font18 color">+ '+res[i].real_money+'</span>' +
+                                '</li>'
+                        }
+
+                        setTimeout(function(){
+                            $('ul').html(str);
+                            me.resetload();
+                            page = 1;
+                            me.unlock();
+                            me.noData(false);
+                        },1000);
+                    }else if(res.code==-1){
+
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            loadDownFn : function(me){
+                page++;
+                dlc_request('/Wxsite/Agent/api',{'api_name':'my_order','page':page,'pagesize':pagesize}, function(ret){
+                    console.log(ret.data);
+                    if(ret.code == 1){
+                        var res = ret.data;
+                        var str = '';
+                        if(res.length>0){
+                            for( var i in res){
+                                str+='<li class="flex_sb ptb30 bw mt30 plr24 border-r1 item" data-id="'+res[i].order_id+'">' +
+                                    '<span class="flex_a flex_column"><em class="mb10">'+res[i].title+'</em><em class="col9">编号:'+res[i].macno+'</em></span>' +
+                                    '<span class="font18 color">+ '+res[i].real_money+'</span>' +
+                                    '</li>'
+                            }
+                        }else{
+                            me.lock();
+                            me.noData();
+                        }
+                        // 为了测试，延迟1秒加载
+                        setTimeout(function(){
+                            $('ul').append(str);
+                            me.resetload();
+                        },1000);
+                    }else if(ret.code==-1){
+                        dlctipbox.show('登录超时，请重新登录')
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            threshold : 50
+        });
+    });
+    <!--详情-->
+    $('ul').on('click','.item',function(){
+        location.href='orderDetails2.html?id='+$(this).data('id');
+    })
+</script>

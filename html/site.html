@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>场地管理</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        .color{
+            color:#88e2e1;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <ul class="plr30 pt30">
+        <li class="flex_sb ptb30 bw mt30 plr24 border-r1 item">
+            <span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em class="col9">编号:585236</em></span>
+            <span class="font18 color">+ 562.00</span>
+        </li>
+        <li class="flex_sb ptb30 bw mt30 plr24 border-r1 item">
+            <span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em class="col9">编号:585236</em></span>
+            <span class="font18 color">+ 562.00</span>
+        </li>
+    </ul>
+</div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    $('ul').on('click','.item',function(){
+        location.href='siteDetail.html'
+    })
+</script>

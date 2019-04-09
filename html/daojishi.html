@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>使用中</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        .outside{
+            height:3.3rem;
+            width:3.3rem;
+            border-radius: 50%;
+        }
+        .inside{
+            height:3.1rem;
+            width:3.1rem;
+            border-radius: 50%;
+            background-color:#d64220;
+        }
+        body{
+            background:url("../img/bolang.png")no-repeat bottom center;
+            background-size:100% 1.57rem;
+            background-color:#fff;
+        }
+    </style>
+</head>
+<body class="flex_aj flex_column">
+    <div class="outside border1 flex_aj flex_column">
+        <div class="inside flex_aj flex_column">
+            <div class="font15 colw">使用中</div>
+            <p class="font30 colw" id="times"></p>
+        </div>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    countDown();
+    var times;
+    var orderid;
+
+    setInterval(function(){
+        dlc_request('/Wxsite/Device/api',{api_name:'check_online',order_id:getUrlParam('order_id')},function (data) {
+            // alert(JSON.stringify(data));
+           if(data.code==1){
+               if(data.data.is_off==1){
+                   dlctipbox.show('设备异常');
+                   if(isWX_Allipay()=='2'){
+                       WeixinJSBridge.call('closeWindow');
+                       dlctipbox.show('网络异常');
+                       return false;
+                   }else if(isWX_Allipay()=='3'){
+                       function ready(callback) {
+                           // 如果jsbridge已经注入则直接调用
+                           if (window.AlipayJSBridge) {
+                               callback && callback();
+                           } else {
+                               // 如果没有注入则监听注入的事件
+                               document.addEventListener('AlipayJSBridgeReady', callback, false);
+                           }
+                       }
+                       ready(function() {
+                           AlipayJSBridge.call('exitApp');
+                           dlctipbox.show('网络异常');
+                       });
+                       return false
+                   }
+               }else if(data.data.is_off==0){
+                   //监听屏幕息屏
+                   document.addEventListener('visibilitychange',function(){
+                       clearInterval(times);
+                       countDown();
+                   });
+                   countDown();
+               }
+           }
+        });
+    },1000);
+    function countDown(){
+        dlc_request('/Wxsite/Device/api',{api_name:'count_down',order_id:getUrlParam('order_id')},function (data) {
+           // alert(JSON.stringify(data));
+            if(data.code=='1'){
+                orderid=data.data.order_id;
+                var seconds=data.data;//秒数
+                if(seconds<=0){//时间用完时
+                    endTimes();
+                    return false;
+                }
+                $('#times').text(getTime(seconds));
+                clearInterval(times);
+                times=setInterval(function(){
+                    seconds--;
+                    var time=getTime(seconds);
+                    $('#times').text(time);
+                    if(time=='00:00:00'){
+                        clearInterval(times);
+                        // endTimes();
+                       if(isWX_Allipay()=='2'){
+                           WeixinJSBridge.call('closeWindow');
+                           return false;
+                       }else if(isWX_Allipay()=='3'){
+                           function ready(callback) {
+                               // 如果jsbridge已经注入则直接调用
+                               if (window.AlipayJSBridge) {
+                                   callback && callback();
+                               } else {
+                                   // 如果没有注入则监听注入的事件
+                                   document.addEventListener('AlipayJSBridgeReady', callback, false);
+                               }
+                           }
+                           ready(function() {
+                               AlipayJSBridge.call('exitApp');
+                           });
+                           return false
+                       }
+                    }
+                },1000);
+            }else{
+//                clearInterval(times);
+//                dlctipbox.alert('网络异常',function (flag) {
+//                    if(flag==1){
+//                        if(isWX_Allipay()=='2'){
+//                            WeixinJSBridge.call('closeWindow');
+//                            return false;
+//                        }else if(isWX_Allipay()=='3'){
+//                            function ready(callback) {
+//                                // 如果jsbridge已经注入则直接调用
+//                                if (window.AlipayJSBridge) {
+//                                    callback && callback();
+//                                } else {
+//                                    // 如果没有注入则监听注入的事件
+//                                    document.addEventListener('AlipayJSBridgeReady', callback, false);
+//                                }
+//                            }
+//                            ready(function() {
+//                                AlipayJSBridge.call('exitApp');
+//                            });
+//                            return false
+//                        }
+//                    }
+//                });
+            }
+        });
+    }
+    //结束设备
+    // function endTimes() {
+    //     dlc_request('/Wxsite/Device/api',{api_name:'end_order',order_id:orderid},function (res) {
+    //         if(res.code==1){
+    //                 clearInterval(times);
+    //                 dlctipbox.alert('您好</br>您的套餐已使用完</br>如果您需要继续使用，请及时充值',function (flag) {
+    //                     if(flag==1){
+    //                         WeixinJSBridge.call('closeWindow');
+    //                     }
+    //                 });
+    //         }
+    //     });
+    // }
+    function getTime(userseconds){
+        var times=userseconds;
+        if(times<=0){
+            times='00:00:00';
+        }else{
+            var hours=parseInt(times/3600);
+            var mins=parseInt(times%3600/60);
+            var second=parseInt(times%3600%60);
+            times=(hours<10?"0"+hours:hours)+':'+(mins<10?"0"+mins:mins)+':'+(second<10?"0"+second:second);
+
+        }
+        return times;
+    }
+</script>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        .ptb40{
+            padding-top:0.4rem;
+            padding-bottom:0.4rem;
+        }
+        .bgtop{
+            background: linear-gradient(to right, #ef9c21 , #f7671d);
+        }
+        .border-left-right{
+            border-top-left-radius: 0.1rem;
+            border-top-right-radius: 0.1rem;
+        }
+        .font18{
+            font-size:0.36rem;
+        }
+        .fb7c39{
+            color:#fb7c39;
+        }
+        .box-show{
+        box-shadow:2px 0 2px #ccc,0 2px 2px #ccc,-2px 0 2px #ccc,0 0px 0px #ccc;
+        }
+    </style>
+</head>
+<body class="plr20">
+    <p class="flex_sb ptb40 bgtop mt10 border-left-right plr20 colw"><span class="font18 names"></span><span class="font15"><em class="pl10"><em class="pri"></em>元/<em class="min"></em>分钟</em></span></p>
+    <div class="bw plr20 ptb30 box-show">
+        <p class="flex_sb mb20"><span>设备编号</span><span class="font13 col9 macno"></span></p>
+        <p class="flex_sb mb20"><span>付款时间</span><span class="font13 col9 pay_time"></span></p>
+        <p class="flex_sb mb20"><span>结束时间</span><span class="font13 col9 end_time"></span></p>
+        <p class="flex_sb mb20"><span>需付</span><span class="font13 col9"><em class="should_money"></em>元</span></p>
+        <p class="flex_sb mb20"><span>优惠券</span><span class="font13 fb7c39">-<em class="coupon"></em>元</span></p>
+        <p class="flex_sb "><span>实付</span><span class="font16"><em class="real_money"></em>元</span></p>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+
+    dlc_request('/wxsite/user/api',{api_name:'order_info',order_id:getUrlParam('order_id')},function (res) {
+        console.log(res);
+        // alert(JSON.stringify(res));
+        if(res.code==1){
+            $('.names').text(res.data.title);
+            $('.pri').text(res.data.price);
+            $('.min').text(res.data.minute);
+            $('.macno').text(res.data.order_macno);
+            $('.pay_time').text(date('Y-m-d H:i:s',res.data.pay_time));
+            $('.end_time').text(date('Y-m-d H:i:s',res.data.end_time));
+            $('.should_money').text(res.data.should_money);
+            $('.coupon').text(res.data.coupon_money);
+            $('.real_money').text(res.data.real_money);
+
+        }else{
+            dlctipbox.show(res.msg);
+        }
+    })
+</script>

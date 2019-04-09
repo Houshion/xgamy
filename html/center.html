@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        header{
+            background:url("../img/toppic.png")no-repeat center center;
+            background-size:7.5rem 2.9rem;
+            width:100%;
+            height:2.9rem;
+        }
+        header img{
+            width:1.5rem;
+            height:1.5rem;
+            border-radius: 50%;
+        }
+        .center p{
+            background:url("../img/arror.png")no-repeat 97% center;
+            background-size:0.15rem 0.27rem;
+            padding:0.3rem 0;
+        }
+        .center img{
+            width:0.36rem;
+            height:0.4rem;
+            margin-right:0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <header class="flex_aj flex_column mb10">
+            <img src="" alt="" class="tx">
+            <p class="mt10 nick"></p>
+        </header>
+        <div class="center">
+            <div class="mb20 bw pl30">
+                <p class="bdb wallet"><img src="../img/wallet.png" alt=""><span>优惠券</span></p>
+                <p class="ordermsg"><img src="../img/order.png" alt=""><span>订单信息</span></p>
+            </div>
+            <div class="bw pl30">
+                <p class="bdb advice"><img src="../img/tongzhi.png" alt=""><span>我要报障</span></p>
+                <p class="aboutus"><img src="../img/our.png" alt=""><span>关于我们</span></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    <!--修改个人资料-->
+    $('header').click(function(){
+        location.href='person_data.html';
+    });
+    <!--钱包-->
+    $('.wallet').click(function(){
+        location.href='coupon.html';
+    });
+
+    <!--订单信息-->
+    $('.ordermsg').click(function(){
+        location.href='orderMsg.html';
+    });
+
+    <!--反馈建议-->
+    $('.advice').click(function(){
+        location.href='advice.html';
+    });
+
+//    关于我们
+    $('.aboutus').click(function(){
+        location.href='aboutUs.html';
+    });
+
+//    获取个人资料
+    dlc_request('/wxsite/user/api',{api_name:'user_info'},function (res) {
+        console.log(res);
+        if(res.code==1){
+            $('.nick').text(res.data.nickname);
+            $('.tx').attr('src',res.data.head_img);
+        }
+    })
+
+</script>

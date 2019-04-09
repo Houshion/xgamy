@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>二维码</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        .erweima{
+            width:4.03rem;
+            height:4rem;
+        }
+
+        .ptb120{
+            padding-top:1.2rem;
+            padding-bottom:1.2rem;
+        }
+    </style>
+</head>
+<body class="bw">
+    <div class="flex_a flex_column">
+        <header class="tac ptb120">
+            <img src="../img/erweima.png" alt="" class="erweima">
+        </header>
+
+        <p class="font19 fw mb20">关注可免费按摩一次</p>
+        <p class="col9 mb80">长按二维码关注公众号</p>
+        <p class="font12 col9 mt100 no">暂不关注</p>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    var pid = getUrlParam('pid'); //后台公众号id
+    var macno = getUrlParam('macno'); //设备号
+
+    dlc_request('/Wxsite/Device/api',{'api_name':'get_wx_info','wx_id':pid,'macno':macno}, function(result){
+        if(result.code == 1){
+            $('.erweima').attr('src',result.data);
+        } else {
+            WeixinJSBridge.call('closeWindow');
+            dlctipbox.show(result.msg);
+        }
+    })
+
+    $('.no').click(function(){
+        location.href='set.html?macno='+macno;
+    })
+</script>

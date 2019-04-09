@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>关于我们</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+
+    </style>
+</head>
+<body>
+    <div class="us plr20" style="height:100%;">
+
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    <!--关于我们-->
+    dlc_request('/wxsite/user/api',{api_name:'about_us'},function (res) {
+        console.log(res);
+        if(res.code==1){
+            $('.us').html(res.data);
+        }
+    })
+</script>

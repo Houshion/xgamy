@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>二维码</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+</head>
+<body>
+
+</body>
+</html>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/dlc.js"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+   sao();
+    //扫一扫接口调用
+    function sao() {
+        //微信授权
+        dlctipbox.loading();
+        $.ajax({
+            type: "POST",
+            url: dlcUrl() + "/Wxsite/Device/api",
+            data: { api_name:'get_ticket'},
+            dataType: 'json',
+            success: function(data) {
+                dlctipbox.clear();
+                console.log(data);
+                // alert(JSON.stringify(data));
+                if (data.data.result.errmsg == 'ok') {
+                    var timestamp = (new Date().getTime() / 1000).toFixed(0);
+                    var nonceStr = Math.random().toString(36).substr(2);
+                    var ticket = wx_js(data.data.result.ticket, timestamp, nonceStr);
+                    wx.config({
+                        debug: false, // 开启调试模式,调用的所有api的返回值会在客户端//alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                        appId: data.data.appid, // 必填，公众号的唯一标识
+                        timestamp: timestamp, // 必填，生成签名的时间戳
+                        nonceStr: nonceStr, // 必填，生成签名的随机串
+                        signature: ticket, // 必填，签名，见附录1
+                        jsApiList: ['checkJsApi',
+                            'onMenuShareTimeline',
+                            'onMenuShareAppMessage',
+                            'onMenuShareQQ',
+                            'onMenuShareWeibo',
+                            'hideMenuItems',
+                            'showMenuItems',
+                            'hideAllNonBaseMenuItem',
+                            'showAllNonBaseMenuItem',
+                            'translateVoice',
+                            'startRecord',
+                            'stopRecord',
+                            'onRecordEnd',
+                            'playVoice',
+                            'pauseVoice',
+                            'stopVoice',
+                            'uploadVoice',
+                            'downloadVoice',
+                            'chooseImage',
+                            'previewImage',
+                            'uploadImage',
+                            'downloadImage',
+                            'getNetworkType',
+                            'openLocation',
+                            'getLocation',
+                            'hideOptionMenu',
+                            'showOptionMenu',
+                            'closeWindow',
+                            'scanQRCode',
+                            'chooseWXPay',
+                            'openProductSpecificView',
+                            'addCard',
+                            'chooseCard',
+                            'openCard'
+                        ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+                    });
+                    ticket = data.data.result.ticket;
+                    console.log(ticket);
+                    wx.ready(function() {
+                        wx.scanQRCode({
+                            needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                            scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                            success: function(res) {
+                                // alert(JSON.stringify(res));
+                                var macno = getUrlParam('macno',null,res.resultStr);
+
+                                dlc_request('/Wxsite/Device/api',{'api_name':'is_wx',macno:macno}, function(result){ //查找当前用户是否有未关注的公众号
+                                    if(result.code == 1){
+                                        var pid = result.data.wx_id;//公众号id，如果为0就没有需要关注的公众号
+                                        if(pid) {
+                                            location.href='fans.html?macno='+macno+'&pid='+pid;
+                                        } else {
+                                            location.href='set.html?macno='+macno;
+                                        }
+                                    }
+                                })
+                            },
+                            error: function(err) {
+                                dlctipbox.show(err);
+                            }
+                        });
+                    })
+                }
+            }
+        });
+    }
+</script>

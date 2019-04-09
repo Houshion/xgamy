@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+</head>
+<body class="plr24 pt20">
+    <ul class="bw plr24 ptb20 border-r1">
+        <li class="flex_sb ptb20"><span class="col9">订单编号</span><span class="order_no"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">设备编号</span><span class="macno"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">设备名称</span><span class="device_name"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">使用套餐</span><span class="item_name"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">使用的优惠券</span><span class="coupon_name"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">使用时段</span><span class="flex flex_column"><em class="start_time"></em> <em class="end_time"></em></span></li>
+        <li class="flex_sb ptb20"><span class="col9">用户昵称</span><span class="user_name"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">应付金额</span><span class="should_money"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">实付金额</span><span class="real_money"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">支付方式</span><span class="paytype"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">状态</span><span class="status_"></span></li>
+        <li class="flex_sb ptb20"><span class="col9">创建时间</span><span class="ctime"></span></li>
+    </ul>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    var order_id = getUrlParam('id')
+    dlctipbox.loading();
+    dlc_request('/Wxsite/Agent/api',{'api_name':'order_detail','order_id':order_id},function(res){
+        console.log(res);
+        dlctipbox.clear();
+        if(res.code==1){
+        $('.order_no').text(res.data.order_no);
+        $('.macno').text(res.data.macno);
+        $('.device_name').text(res.data.device_name);
+        $('.item_name').text(res.data.item_name);
+        $('.coupon_name').text(res.data.coupon_name);
+        $('.start_time').text(res.data.start_time+'~');
+        $('.end_time').text(res.data.end_time);
+        $('.user_name').text(res.data.user_name);
+        $('.should_money').text(res.data.should_money);
+        $('.real_money').text(res.data.real_money);
+        $('.paytype').text(res.data.paytype);
+        $('.status_').text(res.data.status_);
+        $('.ctime').text(res.data.ctime);
+        }else{
+            dlctipbox.show(res.msg)
+        }
+    })
+</script>

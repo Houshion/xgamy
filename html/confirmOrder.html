@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>确认订单</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../js/drop/dropload.css" />
+    <style>
+        .yixuan{
+            background:url("../img/yixuan.png")no-repeat left center;
+            background-size:0.35rem 0.34rem;
+            padding-left:0.5rem;
+        }
+        .youhui img{
+            width:0.39rem;
+            height:0.3rem;
+        }
+        .youhui{
+            background:url("../img/arror.png")no-repeat 98% center;
+            background-size:0.15rem 0.27rem;
+            background-color:#fff;
+            padding-left:0.3rem;
+        }
+        .paytype{
+            background:url("../img/payment.png")no-repeat 4.5% center;
+            background-size:0.38rem 0.32rem;
+            background-color:#fff;
+        }
+        .wechat{
+            background:url("../img/wechat.png")no-repeat left center;
+            background-size:0.54rem 0.46rem;
+        }
+        .yue{
+            background:url("../img/yue.png")no-repeat left center;
+            background-size:0.5rem 0.57rem;
+        }
+        b{
+            background:url("../img/gou1.png")no-repeat right center;
+            background-size:0.42rem 0.42rem;
+            width:0.42rem;
+            height:0.42rem;
+            display: inline-block;
+        }
+        input[type=radio]:checked+b{
+            background:url("../img/gou2.png")no-repeat right center;
+            background-size:0.42rem 0.42rem;
+            width:0.42rem;
+            height:0.42rem;
+            display: inline-block;
+        }
+        .confirm{
+            display: block;
+            width: 90%;
+            height: 0.9rem;
+            border: none;
+            outline: none;
+            border-radius: 0.5rem;
+            margin:0 auto;
+        }
+
+        /*弹出层*/
+        #mask{
+            background: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: none;
+            overflow: scroll;
+        }
+        .left{
+            height:2.02rem;
+            padding-right:62%;
+            padding-left:6%;
+            width:100%;
+            background:url("../img/youhuiquan.png")no-repeat center center;
+            background-size:6.62rem 2.02rem;
+        }
+        .font10{
+            font-size:0.1rem;
+        }
+        .right{
+            height:2.02rem;
+            padding-right:62%;
+            padding-left:6%;
+            width:100%;
+            background:url("../img/youhuiquan1.png")no-repeat center center;
+            background-size:6.62rem 2.02rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="plr20" style="padding-bottom:0.5rem;">
+        <div class="bw mt10 border-r1">
+            <div class="pl30 ptb30">
+                <p class="mb20 yixuan">已选择套餐</p>
+                <p class="col9" style="padding-left:0.5rem;"><em class="na"></em> (<em class="pri"></em>元<em class="m"></em>分钟)</p>
+            </div>
+            <div class="flex_a flex_column pb20">
+                <p>￥<em style="font-size: 0.66rem;" class="prices"></em></p>
+            </div>
+        </div>
+        <div class="youhui flex_a mt10 ptb30 border-r1"><img src="../img/youhui.png" alt=""><em class="pl20">优惠券</em></div>
+        <div class="mt10 mb60 bw border-r1">
+            <p class="paytype flex_sb ptb30 plr20 border-r1"><span style="padding-left:0.65rem;">支付</span><span class="col6">需支付<em
+                        style="color:#eea522;" class="pr"></em>元</span></p>
+            <!--<div class=" plr30 ptb30" style="border-top:1px solid #ececec;">-->
+            <!--</div>-->
+        </div>
+        <button class="confirm bgmm colw font15" style="margin-bottom:0.5rem;">支付</button>
+    </div>
+    <!--youhuiqu-->
+    <div id="mask">
+        <em class="font30 exit" style="padding-left:7rem;color:red;">x</em>
+        <div id="wrap">
+            <div class="mt30 ul">
+
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script type="text/javascript" src="../js/drop/dropload.min.js"></script>
+<script>
+    var orderid;
+    var meal_id;
+
+    //    套餐价格
+    $('.pri').text(getUrlParam('price'));
+    $('.m').text(getUrlParam('m'));
+    $('.prices').text(getUrlParam('price'));
+    $('.pr').text(getUrlParam('price'));
+    $('.na').text(decodeURIComponent(getUrlParam('na')));
+
+    //    下单
+    var price = getUrlParam('price'); //需要支付的金额
+    var onOff = 0;
+    $('.confirm').click(function () {
+        if (onOff) return false;
+        if (isWX_Allipay() == '2') {
+            onOff = 1;
+            dlctipbox.loading();
+            //使用微信支付
+            dlc_request('/Wxsite/Device/api', {
+                api_name: 'pay_order',
+                macno: getUrlParam('macno'),
+                coupon_id: meal_id,
+                pay_type: isWX_Allipay(),
+                item_id: getUrlParam('meal_id')
+            }, function (res) {
+                console.log(res);
+                dlctipbox.clear();
+                if (res.code == 1) {
+                    orderid = res.data.order_id;
+                    jsApiParameters = res.data.wx_info;
+                    callpay();
+                } else if (res.code == 88) {
+                    dlctipbox.loading('正在开启');
+                    orderid = res.data.order_id;
+                    dlc_request('/Wxsite/Device/api', {
+                        api_name: 'open_device',
+                        order_id: res.data.order_id
+                    }, function (res) {
+                        // console.log(res);
+                        // alert(JSON.stringify(res));
+                        dlctipbox.clear();
+                        if (res.code == "1") {
+                            location.href = 'daojishi.html?order_id=' + orderid + '&macno=' +
+                                getUrlParam('macno');
+                        } else {
+                            dlctipbox.show(res.msg);
+                        }
+                    })
+                } else {
+                    onOff = 0;
+                    dlctipbox.show(res.msg);
+                }
+            })
+        } else if (isWX_Allipay() == '3') {
+            onOff = 1;
+            dlctipbox.loading();
+            //使用支付宝支付
+            function ready(callback) {
+                // 如果jsbridge已经注入则直接调用
+                if (window.AlipayJSBridge) {
+                    callback && callback();
+                } else {
+                    // 如果没有注入则监听注入的事件
+                    document.addEventListener('AlipayJSBridgeReady', callback, false);
+                }
+            }
+            dlc_request('/Wxsite/Device/api', {
+                api_name: 'pay_order',
+                macno: getUrlParam('macno'),
+                coupon_id: meal_id,
+                pay_type: isWX_Allipay(),
+                item_id: getUrlParam('meal_id')
+            }, function (res) {
+                console.log(res);
+                dlctipbox.clear();
+                // alert(JSON.stringify(res));
+                if (res.code == 1) {
+                    AlipayJSBridge.call("tradePay", {
+                        orderStr: res.data
+                    }, function (result) {
+                        //                                    alert(JSON.stringify(result));
+                        if (result.resultCode == '9000') {
+                            dlctipbox.show('支付成功');
+                            dlctipbox.loading('正在开启');
+                            orderid = res.order_id;
+                            dlc_request('/Wxsite/Device/api', {
+                                api_name: 'open_device',
+                                order_id: orderid
+                            }, function (res) {
+                                // console.log(res);
+                                // alert(JSON.stringify(res));
+                                dlctipbox.clear();
+                                if (res.code == "1") {
+                                    location.href = 'daojishi.html?order_id=' + orderid +
+                                        '&macno=' + getUrlParam('macno');
+                                } else {
+                                    dlctipbox.show(res.msg);
+                                }
+                            })
+                        } else if (result.resultCode == '8000') {
+                            dlctipbox.show('后台获取支付结果超时，暂时未拿到支付结果');
+                            onOff = 0;
+                        } else if (result.resultCode == '6004') {
+                            dlctipbox.show('支付过程中网络出错， 暂时未拿到支付结果');
+                            onOff = 0;
+                        } else if (result.resultCode == '6001') {
+                            dlctipbox.show('用户取消支付');
+                            onOff = 0;
+                        } else {
+                            dlctipbox.show('支付失败');
+                            onOff = 0;
+                        }
+                    });
+                } else if (res.code == 88) {
+                    dlctipbox.loading('正在开启');
+                    orderid = res.data.order_id;
+                    dlc_request('/Wxsite/Device/api', {
+                        api_name: 'open_device',
+                        order_id: res.data.order_id
+                    }, function (res) {
+                        // console.log(res);
+                        // alert(JSON.stringify(res));
+                        dlctipbox.clear();
+                        if (res.code == "1") {
+                            setTimeout(function () {
+                                dlc_request('/Wxsite/Device/api', {
+                                    api_name: 'get_order_status',
+                                    order_id: orderid
+                                }, function (res) {
+                                    console.log(res);
+                                    if (res.code == 1) {
+                                        if (res.data.status == 3) {
+                                            location.href =
+                                                'daojishi.html?order_id=' +
+                                                orderid + '&macno=' +
+                                                getUrlParam('macno');
+                                        } else if (res.data.status == '-5') {
+                                            dlctipbox.alert(res.msg);
+                                            WeixinJSBridge.call('closeWindow');
+                                        }
+                                    }
+                                });
+                            }, 2000)
+                        } else {
+                            dlctipbox.show(res.msg);
+                        }
+                    })
+                } else {
+                    onOff = 0;
+                    dlctipbox.show(res.msg);
+                }
+            })
+        }
+    });
+
+
+    // 提交支付信息
+    var jsApiParameters = {};
+    //调用微信JS api 支付
+    function jsApiCall() {
+        WeixinJSBridge.invoke(
+            'getBrandWCPayRequest',
+            jsApiParameters, // 提交的支付信息
+            function (res) {
+                // WeixinJSBridge.log(res.err_msg);
+                // alert(JSON.stringify(res));
+                if (res.err_msg == 'get_brand_wcpay_request:ok') {
+                    dlctipbox.show('支付成功');
+                    dlctipbox.loading('正在开启');
+                    //微信支付成功后开启设备
+                    dlc_request('/Wxsite/Device/api', {
+                        api_name: 'open_device',
+                        order_id: orderid
+                    }, function (res) {
+                        console.log(res);
+                        // alert(JSON.stringify(res));
+                        dlctipbox.clear();
+                        if (res.code == "1") {
+                            location.href = 'daojishi.html?order_id=' + orderid + '&macno=' + getUrlParam(
+                                'macno');
+                        } else {
+                            dlctipbox.show(res.msg);
+                        }
+                    })
+                } else {
+                    onOff = 0;
+                    dlctipbox.show("取消支付")
+                }
+            }
+        );
+    }
+    //调用微信 支付
+    function callpay() {
+        if (typeof WeixinJSBridge == "undefined") {
+            if (document.addEventListener) {
+                document.addEventListener('WeixinJSBridgeReady', jsApiCall, false);
+
+            } else if (document.attachEvent) {
+                document.attachEvent('WeixinJSBridgeReady', jsApiCall);
+                document.attachEvent('onWeixinJSBridgeReady', jsApiCall);
+            }
+        } else {
+            jsApiCall();
+        }
+    }
+
+    <!--优惠券弹出层-->
+    <!--优惠券-->
+    $('.youhui').click(function () {
+        $('#mask').show();
+    });
+    $(function () {
+        var page = 0;
+        var pagesize = 10;
+        $('#wrap').dropload({
+            scrollArea: window,
+            domUp: {
+                domClass: 'dropload-up',
+                domRefresh: '<div class="dropload-refresh">↓下拉刷新</div>',
+                domUpdate: '<div class="dropload-update">↑释放更新</div>',
+                domLoad: '<div class="dropload-load"><span class="loadings"></span>加载中...</div>'
+            },
+            domDown: {
+                domClass: 'dropload-down',
+                domRefresh: '<div class="dropload-refresh">↑上拉加载更多</div>',
+                domLoad: '<div class="dropload-load"><span class="loadings"></span>加载中...</div>',
+                domNoData: '<div class="dropload-noData">暂无更多数据</div>'
+            },
+            loadUpFn: function (me) {
+                dlc_request('/Wxsite/Device/api', {
+                    'api_name': 'get_user_coupon',
+                    'page': 1,
+                    'pagesize': pagesize
+                }, function (res) {
+                    console.log(res.data);
+                    if (res.code == 1) {
+                        var res = res.data;
+                        var str = '';
+                        for (var i in res) {
+                            str += '<p class="mb20 flex_aj flex_column colw ' + (res[i].status_name ==
+                                    "未使用" ? "left" : "right") + '" data-coupon="' + res[i].id +
+                                '" data-type="' + res[i].status_name + '">\n' +
+                                '<span>￥<em class="font21">' + res[i].coupon_money +
+                                '</em></span>\n' +
+                                '<span class="plr20 font10 mt10">有效期:' + date("Y-m-d H:i:s",
+                                    res[i].etime) + '</span>\n' +
+                                '</p>'
+                        }
+                        setTimeout(function () {
+                            $('.ul').html(str);
+                            me.resetload();
+                            page = 1;
+                            me.unlock();
+                            me.noData(false);
+                        }, 1000);
+                    } else if (res.code == -1) {
+
+                    } else {
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            loadDownFn: function (me) {
+                page++;
+                dlc_request('/Wxsite/Device/api', {
+                    'api_name': 'get_user_coupon',
+                    'page': page,
+                    'pagesize': pagesize
+                }, function (ret) {
+                    console.log(ret.data);
+                    if (ret.code == 1) {
+                        var res = ret.data;
+                        var str = '';
+                        if (res.length > 0) {
+                            for (var i in res) {
+                                str += '<p class="mb20 flex_aj flex_column colw ' + (res[i]
+                                        .status_name == "未使用" ? "left" : "right") +
+                                    '" data-coupon="' + res[i].id + '" data-type="' + res[i]
+                                    .status_name + '">\n' +
+                                    '<span>￥<em class="font21">' + res[i].coupon_money +
+                                    '</em></span>\n' +
+                                    '<span class="plr20 font10 mt10">有效期:' + date(
+                                        "Y-m-d H:i:s", res[i].etime) + '</span>\n' +
+                                    '</p>'
+                            }
+                        } else {
+                            me.lock();
+                            me.noData();
+                        }
+                        // 为了测试，延迟1秒加载
+                        setTimeout(function () {
+                            $('.ul').append(str);
+                            me.resetload();
+                        }, 1000);
+                    } else if (ret.code == -1) {
+                        dlctipbox.show('登录超时，请重新登录')
+                    } else {
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            threshold: 50
+        });
+    });
+
+    //判断是否点击优惠券
+    $('.ul').on('click', 'p', function () {
+        if ($(this).data('type') == '未使用') {
+            meal_id = $(this).data('coupon');
+            $('#mask').hide();
+            // 计算优惠后价格
+            dlc_request('/Wxsite/Device/api', {
+                api_name: 'get_coupon_money',
+                coupon_id: meal_id,
+                item_id: getUrlParam('meal_id')
+            }, function (res) {
+                console.log(res);
+                if (res.code == 1) {
+                    $('.prices').text(res.data);
+                    $('.pr').text(res.data);
+                    price = res.data;
+                }
+            });
+        } else {
+            $('#mask').hide();
+        }
+    });
+
+    //    关闭优惠券
+    $('.exit').click(function () {
+        $('#mask').hide();
+    })
+</script>

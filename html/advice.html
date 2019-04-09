@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我要报障</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/zy_base.css">
+    <link rel="stylesheet" href="../css/zy_common.css">
+    <style>
+        header img{
+            width:0.4rem;
+            height:0.4rem;
+        }
+        .choose{
+            background:url("../img/que.png")no-repeat 3% center;
+           background-size:0.32rem 0.34rem;
+            padding-left:0.65rem;
+        }
+        ul{
+            width: 100%;
+            display: flex;
+            flex-flow: row wrap;
+            align-items: center;
+        }
+        ul label{
+            text-align: center;
+            margin-left:0.2rem;
+            margin-bottom: 0.3rem;
+        }
+        ul label span{
+            display: inline-block;
+            border-radius: 1rem;
+            border:1px solid #ccc;
+            padding:0.1rem 0.1rem;
+        }
+        .borderb{
+            border-top: 1px solid #ececec;
+        }
+        ul input[type=radio]:checked+span{
+            background:#ce1919;
+            color: #fff;
+            border-radius: 1rem;
+        }
+        .confirm{
+            display: block;
+            width: 90%;
+            height: 0.7rem;
+            border: none;
+            outline: none;
+            border-radius: 0.5rem;
+            margin:0 auto;
+        }
+
+    </style>
+<body>
+<div class="plr20">
+<form  action="" enctype="multipart/form-data" method="post" name="form" id="form" onsubmit="return formSubmit()">
+        <header class="bw ptb30 mt10 border-r1 flex_sb plr20">
+            <input type="text" placeholder="扫描二维码或手动输入编号" class="input" style="width:80%;" value="">
+           <span class="pl20 saoCode" style="width:10%;" ><img src="../img/saoyisao.png" alt=""></span>
+        </header>
+    <div class="mt10 bw pt30 border-r1">
+        <p class="choose mb20">请选择问题类型</p>
+        <ul class="ptb30 borderb flex_sb pr20">
+
+        </ul>
+    </div>
+            <div class="comements border-r1 mb80">
+                <textarea name="content" placeholder="问题补充描述" id="text"></textarea>
+                <div class="comment-photo">
+                    <div class="dib" id="pic_box">
+                        <label>
+                            <input type="file" hidden="hidden" name="img[]"  id="img"  onchange="upLoadImg(this,'pic_box',3)" accept="image/*" capture="camera" multiple/>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button class="confirm bgmm colw font14">提交</button>
+        </form>
+</div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script type="text/javascript" src="../js/jquery.form.js"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+
+    <!--故障问题类型获取-->
+    dlctipbox.loading();
+    dlc_request('/wxsite/user/api',{api_name:'get_fault_type'},function (res) {
+        console.log(res);
+        dlctipbox.clear();
+        if(res.code==1){
+            var html='';
+            for(var i in res.data){
+                html+='<label data-id="'+res.data[i].id+'">' +
+                    '<input type="radio" name="money"  value="'+res.data[i].id+'" hidden />' +
+                    '<span>'+res.data[i].name+'</span>' +
+                    '</label>'
+            }
+            $('.borderb').append(html);
+        }
+    });
+
+    //解决上传图片时capture="camera"在安卓与IOS的兼容性问题（在IOS只能拍照，不能选相册）
+    var ua = navigator.userAgent.toLowerCase();//获取浏览器的userAgent,并转化为小写——注：userAgent是用户可以修改的
+    var isIos = (ua.indexOf('iphone') != -1) || (ua.indexOf('ipad') != -1);//判断是否是苹果手机，是则是true
+    if (isIos) {
+        $("input:file").removeAttr("capture");
+    };
+
+    //获取token授权
+    dlc_request('/Wxsite/Device/api',{api_name:'get_access_token'},function (res) {
+        console.log(res);
+    });
+
+    <!--调用扫一扫-->
+    dlctipbox.loading();
+    $.ajax({
+        type: "POST",
+        url: dlcUrl() + "/Wxsite/Device/api",
+        data: { api_name:'get_ticket'},
+        dataType: 'json',
+        success: function(data) {
+            dlctipbox.clear();
+            console.log(data);
+            // alert(JSON.stringify(data));
+            if (data.data.result.errmsg == 'ok') {
+                var timestamp = (new Date().getTime() / 1000).toFixed(0);
+                var nonceStr = Math.random().toString(36).substr(2);
+                var ticket = wx_js(data.data.result.ticket, timestamp, nonceStr);
+                wx.config({
+                    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端//alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                    appId: data.data.appid, // 必填，公众号的唯一标识
+                    timestamp: timestamp, // 必填，生成签名的时间戳
+                    nonceStr: nonceStr, // 必填，生成签名的随机串
+                    signature: ticket, // 必填，签名，见附录1
+                    jsApiList: ['checkJsApi',
+                        'onMenuShareTimeline',
+                        'onMenuShareAppMessage',
+                        'onMenuShareQQ',
+                        'onMenuShareWeibo',
+                        'hideMenuItems',
+                        'showMenuItems',
+                        'hideAllNonBaseMenuItem',
+                        'showAllNonBaseMenuItem',
+                        'translateVoice',
+                        'startRecord',
+                        'stopRecord',
+                        'onRecordEnd',
+                        'playVoice',
+                        'pauseVoice',
+                        'stopVoice',
+                        'uploadVoice',
+                        'downloadVoice',
+                        'chooseImage',
+                        'previewImage',
+                        'uploadImage',
+                        'downloadImage',
+                        'getNetworkType',
+                        'openLocation',
+                        'getLocation',
+                        'hideOptionMenu',
+                        'showOptionMenu',
+                        'closeWindow',
+                        'scanQRCode',
+                        'chooseWXPay',
+                        'openProductSpecificView',
+                        'addCard',
+                        'chooseCard',
+                        'openCard'
+                    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+                });
+                ticket = data.data.result.ticket;
+                console.log(ticket);
+                wx.ready(function() {
+                    $('.saoCode').click(function(){
+                        wx.scanQRCode({
+                            needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                            scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                            success: function(res) {
+                                // alert(JSON.stringify(res));
+                                var macno = getUrlParam('macno',null,res.resultStr);
+                                $(".input").attr("value",macno);
+                                // location.href='set.html?macno='+macno;
+                            },
+                            error: function(err) {
+                                dlctipbox.show(err);
+                            }
+                        });
+                    });
+                })
+            }
+        }
+    });
+var fault_type_id;
+    //图片提交
+    var onOff=0;
+    $('.confirm').on('click', function() {
+        $('#form').submit();
+       // fault_type_id = $('input:radio[name="money"]:checked').parent().attr('data-id')
+    });
+
+    function formSubmit(){
+        $('#form').ajaxSubmit({
+            url:dlcUrl()+'/wxsite/user/api',
+            data:{api_name:'feedback',macno: $('.input').val(),content:$('#text').val(),type_id:$('input:radio[name="money"]:checked').val()},
+            type : 'POST',
+            dataType:  'json',
+            beforeSubmit:function(){
+                //console.log(fault_type_id);
+                var content = form.content.value;
+                var imgValue=$('#img').val();
+                if(isNull(content)) {
+                    dlctipbox.show('请留下您的意见和建议吧');
+                    return false;
+                }else if(content.length>100){
+                    dlctipbox.show('意见和建议不得超出100字');
+                    return false;
+                }else if($('input:radio[name="money"]:checked').val()==undefined){
+                    dlctipbox.show('请选择问题类型');
+                    return false;
+                }else if($('.input').val()==''){
+                    dlctipbox.show('请输入设备号');
+                    return false;
+                }
+//
+                else{
+                    if(onOff){return false;}onOff=1;
+                    dlctipbox.loading('提交中...');
+                }
+            },
+            success: function(res){
+                dlctipbox.clear();
+                if(res.code==1){
+                    dlctipbox.alert('提交成功',function (flag) {
+                        if(flag==1){
+                            history.go(-1);
+                        }
+                    });
+                }else{
+                    dlctipbox.alert(res.msg);
+                    onOff=0;
+                }
+            },
+            error: function(err){
+                console.log(err);
+            }
+        });
+        return false; //阻止表单默认提交
+    }
+
+
+</script>

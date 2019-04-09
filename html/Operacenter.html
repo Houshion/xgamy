@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>运营中心</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <style>
+        header{
+            background-color:#27aa40;
+        }
+        .f5f5f5{
+            /*background-color:#f5f5f5;*/
+            width:85%;
+        }
+        .out{
+            /*border:10px solid #fff;*/
+            /*color:#9dcd17;*/
+        }
+        .item{
+            width:45%;
+            height:2.72rem;
+            box-shadow: 0px 0px  2px 2px #f5f5f5;
+            font-size: 0.3rem;
+            color:#999;
+        }
+        .item1{
+            width:45%;
+            height:2.72rem;
+            font-size: 0.3rem;
+            color:#999;
+        }
+    </style>
+</head>
+<body class="bw">
+    <div class="pb20">
+        <header class="pt30 pb20">
+            <p class="flex_sa colw ptb60">
+                <span class="flex_a flex_column"><em class="font30 mb10 today_order_num"></em><em>今日订单数</em></span>
+                <span class="flex_a flex_column"><em class="font30 mb10"><em class="device_online_num"></em>/<em class="device_total_num"></em></em><em>在线/总台数</em></span>
+            </p>
+            <div class="flex_a flex_column colw">
+                <div class="flex_sa ptb30 f5f5f5 border-r1 out">
+                    <p class="flex_a flex_column"><span class="today_income"></span><span>今日收益</span></p>
+                    <p class="flex_a flex_column"><span class="month_income"></span><span>本月收益</span></p>
+                    <p class="flex_a flex_column"><span class="total_income"></span><span>累计收益</span></p>
+                </div>
+            </div>
+        </header>
+        <div class="flex_sa mt40">
+            <p class="flex_aj flex_column item income"><img src="../img/shouru.png" alt="" style="width:1.48rem;height:1.48rem;"><span>收入统计</span></p>
+            <p class="flex_aj flex_column item device"><img src="../img/shebei.png" alt="" style="width:1.48rem;height:1.48rem;"><span>设备管理</span></p>
+        </div>
+        <div class="flex_sa mt20">
+            <p class="flex_aj flex_column item order"><img src="../img/dingdan.png" alt="" style="width:1.48rem;height:1.48rem;"><span>订单管理</span></p>
+            <p class="flex_aj flex_column item account"><img src="../img/zhanghu.png" alt="" style="width:1.48rem;height:1.48rem;"><span>账户管理</span></p>
+        </div>
+        <!--<div class="flex_sa mt20 site">-->
+            <!--<p class="flex_aj flex_column item"><img src="../img/changdi.png" alt="" style="width:0.79rem;height:0.82rem;"><span>场地管理</span></p>-->
+            <!--<p class="flex_aj flex_column item1"></p>-->
+        <!--</div>-->
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+<!--收入统计-->
+    $('.income').click(function(){
+        location.href='income.html'
+    });
+//    设备管理
+    $('.device').click(function(){
+        location.href='device.html'
+    });
+
+//    订单管理
+    $('.order').click(function(){
+        location.href='ordermsg2.html'
+    });
+
+//    场地管理
+//     $('.site').click(function(){
+//         location.href='site.html'
+//     });
+
+//    账户管理
+    $('.account').click(function(){
+        location.href='account.html'
+    });
+
+
+//    获取运营中心
+dlctipbox.loading();
+dlc_request('/Wxsite/Agent/api',{'api_name':'get_operate_data'},function(res){
+    console.log(res);
+    dlctipbox.clear();
+    if(res.code==1){
+    $('.today_order_num').text(res.data.today_order_num);
+    $('.device_online_num').text(res.data.device_online_num);
+    $('.device_total_num').text(res.data.device_total_num);
+    $('.today_income').text(res.data.today_income);
+    $('.month_income').text(res.data.month_income);
+    $('.total_income').text(res.data.total_income);
+    }else{
+        dlctipbox.show(res.msg)
+    }
+})
+</script>

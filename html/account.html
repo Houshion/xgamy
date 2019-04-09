@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>提现申请</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../js/drop/dropload.css" />
+
+    <style>
+        .red{
+            /*background:url("../img/account.png")no-repeat 8% center;*/
+            /*background-size:0.34rem 0.32rem;*/
+            background-color:#ce1919;
+            width:1.68rem;
+            height:0.6rem;
+            margin:0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="plr24 pt30">
+        <header class="tac ptb60 bw border-r1">
+            <p class="col9 mb20">总余额</p>
+            <p class="font19 mb20 balance" style="color:#ce1919;"></p>
+            <p class="border-r1 red colw flex_aj apply"><img src="../img/account.png" alt="" style="width:0.34rem;height:0.32rem;" class="mr20"><em class="fw">提现</em></p>
+        </header>
+        <p class="ptb30 plr24 fw col9">钱包明细</p>
+        <div id="wrap">
+            <ul>
+                <!--<li class="flex_sb bw ptb20 plr24 border-r1 mb20">-->
+                    <!--<span class="flex flex_column"><em class="mb10">提现到银行卡</em><em class="font13 col9">2017.9.30 10:00</em></span>-->
+                    <!--<span class="font16" style="color:#ce1919;">- 10</span>-->
+                <!--</li>-->
+                <!--<li class="flex_sb bw ptb20 plr24 border-r1 mb20">-->
+                    <!--<span class="flex flex_column">-->
+                        <!--<em class="mb10">提现到银行卡</em><em class="font13 col9">2017.9.30 10:00</em>-->
+                    <!--</span>-->
+                    <!--<span class="font16" style="color:#ce1919;">- 10</span>-->
+                <!--</li>-->
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script type="text/javascript" src="../js/drop/dropload.min.js"></script>
+<script>
+
+    var balance = 0;
+
+    dlc_request('/Wxsite/Agent/api',{'api_name':'take_money'}, function(res){
+        console.log(res)
+        balance = res.data.balance;
+        $('.balance').text(res.data.balance);
+    });
+
+    $(function(){
+        var page = 0;
+        var pagesize = 10;
+        $('#wrap').dropload({
+            scrollArea : window,
+            domUp : {
+                domClass   : 'dropload-up',
+                domRefresh : '<div class="dropload-refresh">↓下拉刷新</div>',
+                domUpdate  : '<div class="dropload-update">↑释放更新</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>'
+            },
+            domDown : {
+                domClass   : 'dropload-down',
+                domRefresh : '<div class="dropload-refresh">↑上拉加载更多</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>',
+                domNoData  : '<div class="dropload-noData">暂无更多数据</div>'
+            },
+            loadUpFn : function(me){
+                dlc_request('/Wxsite/Agent/api',{'api_name':'take_money','page':1,'pagesize':pagesize}, function(res){
+                    console.log(res.data);
+                    if(res.code == 1){
+                        var res = res.data.cash_list;
+                        var str = '';
+                        for( var i in res){
+                            str+='<li class="flex_sb bw ptb20 plr24 border-r1 mb20">' +
+                                '<span class="flex flex_column"><em class="mb10">提现到银行卡</em><em class="font13 col9">'+res[i].retime+'</em></span>' +
+                                '<span class="font16" style="color:#ce1919;">- '+res[i].money+'</span>' +
+                                '</li>'
+                        }
+
+                        setTimeout(function(){
+                            $('ul').html(str);
+                            me.resetload();
+                            page = 1;
+                            me.unlock();
+                            me.noData(false);
+                        },1000);
+                    }else if(res.code==-1){
+
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            loadDownFn : function(me){
+                page++;
+                dlc_request('/Wxsite/Agent/api',{'api_name':'take_money','page':page,'pagesize':pagesize}, function(ret){
+                    console.log(ret.data);
+                    if(ret.code == 1){
+                        var res = ret.data.cash_list;
+                        var str = '';
+                        if(res.length>0){
+                            for( var i in res){
+                                str+='<li class="flex_sb bw ptb20 plr24 border-r1 mb20">' +
+                                    '<span class="flex flex_column"><em class="mb10">提现到银行卡</em><em class="font13 col9">'+res[i].retime+'</em></span>' +
+                                    '<span class="font16" style="color:#ce1919;">- '+res[i].money+'</span>' +
+                                    '</li>'
+                            }
+                        }else{
+                            me.lock();
+                            me.noData();
+                        }
+                        // 为了测试，延迟1秒加载
+                        setTimeout(function(){
+                            $('ul').append(str);
+                            me.resetload();
+                        },1000);
+                    }else if(ret.code==-1){
+                        dlctipbox.show('登录超时，请重新登录')
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            threshold : 50
+        });
+    });
+
+    <!--提现申请-->
+    $('.apply').click(function(){
+        location.href='accApply.html?balance='+balance;
+    })
+</script>

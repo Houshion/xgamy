@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/zy_base.css">
+    <style>
+        label{
+            width:85%;
+            height:1rem;
+            display: block;
+        }
+        label input{
+            width:85%;
+            height:100%;
+        }
+        .label1{
+            background:url("../img/mob.png")no-repeat 5% center;
+            background-size:0.24rem 0.32rem;
+            background-color: #f8f8f8;
+        }
+        .label2{
+            background:url("../img/psw.png")no-repeat 5% center;
+            background-size:0.28rem 0.32rem;
+            background-color: #f8f8f8;
+        }
+        .mob,.psw{
+            padding-left:0.8rem;
+        }
+        button{
+            width:85%;
+            height:1rem;
+            background-color:#ce1919;
+        }
+    </style>
+</head>
+<body class="bw">
+    <div>
+        <header class="flex_a flex_column ptb60">
+            <img src="../img/logo2.jpg" alt="" style="width:1.8rem;height:1.8rem;border-radius: 50%;">
+        </header>
+        <div class="flex_a flex_column">
+            <label class="bdb label1"><input type="text" placeholder="请输入登录账号" class="mob"></label>
+            <label class="label2"><input type="password" placeholder="请输入登录密码" class="psw"></label>
+            <button class="mt80 font15 border-r6 colw confirm">确定</button>
+        </div>
+    </div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script>
+    $('.confirm').click(function(){
+        if(isNull($('.mob').val())){
+            dlctipbox.show('账号不能为空')
+        }else if(isNull($('.psw').val())){
+            dlctipbox.show('密码不能为空')
+        }else{
+            dlc_request('/Wxsite/Agent/api',{'api_name':'login','account':$('.mob').val(),'password':$('.psw').val()},function(res){
+                console.log(res)
+                if(res.code==1){
+                    location.href='Operacenter.html'
+                }else{
+                    dlctipbox.show(res.msg)
+                }
+            })
+        }
+    })
+</script>

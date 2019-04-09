@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的设备</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <link rel="stylesheet" href="../js/drop/dropload.css" />
+    <style>
+        .kong{
+            color:#97e6e5;
+        }
+        .using{
+            color:#f2c76a;
+        }
+    </style>
+</head>
+<body>
+<div id="wrap">
+    <ul class="plr30 ptb30">
+        <!--<li class="bw ptb30 border-r1 flex_sb plr30 mb20">-->
+            <!--<span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em>编号:585236</em></span>-->
+            <!--<span class="font15 kong">空闲</span>-->
+        <!--</li>-->
+        <!--<li class="bw ptb30 border-r1 flex_sb plr30 mb20">-->
+            <!--<span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em>编号:585236</em></span>-->
+            <!--<span class="font15 using">使用中</span>-->
+        <!--</li>-->
+        <!--<li class="bw ptb30 border-r1 flex_sb plr30 mb20">-->
+            <!--<span class="flex_a flex_column"><em class="mb10">迪尔西公司</em><em>编号:585236</em></span>-->
+            <!--<span class="font15 col6">停用</span>-->
+        <!--</li>-->
+    </ul>
+</div>
+</body>
+</html>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/dlc.js"></script>
+<script type="text/javascript" src="../js/drop/dropload.min.js"></script>
+<script>
+
+    $(function(){
+        var page = 0;
+        var pagesize = 10;
+        $('#wrap').dropload({
+            scrollArea : window,
+            domUp : {
+                domClass   : 'dropload-up',
+                domRefresh : '<div class="dropload-refresh">↓下拉刷新</div>',
+                domUpdate  : '<div class="dropload-update">↑释放更新</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>'
+            },
+            domDown : {
+                domClass   : 'dropload-down',
+                domRefresh : '<div class="dropload-refresh">↑上拉加载更多</div>',
+                domLoad    : '<div class="dropload-load"><span class="loadings"></span>加载中...</div>',
+                domNoData  : '<div class="dropload-noData">暂无更多数据</div>'
+            },
+            loadUpFn : function(me){
+                dlc_request('/Wxsite/Agent/api',{'api_name':'my_device','page':1,'pagesize':pagesize}, function(res){
+                    console.log(res.data);
+                    if(res.code == 1){
+                        var res = res.data;
+                        var str = '';
+                        for( var i in res){
+                            str+='<li class="bw ptb30 border-r1 flex_sb plr30 mb20" data-macno="'+res[i].macno+'">' +
+                                '<span class="flex_a flex_column"><em class="mb10">'+res[i].title+'</em><em>编号:'+res[i].macno+'</em></span>' +
+                                '<span class="font15 kong">'+(res[i].status==1?"空闲":(res[i].status==2?"使用中":"<font color='red'>离线</font>"))+'</span>' +
+                                '</li>'
+                        }
+
+                        setTimeout(function(){
+                            $('ul').html(str);
+                            me.resetload();
+                            page = 1;
+                            me.unlock();
+                            me.noData(false);
+                        },1000);
+                    }else if(res.code==-1){
+
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            loadDownFn : function(me){
+                page++;
+                dlc_request('/Wxsite/Agent/api',{'api_name':'my_device','page':page,'pagesize':pagesize}, function(ret){
+                    console.log(ret.data);
+                    if(ret.code == 1){
+                        var res = ret.data;
+                        var str = '';
+                        if(res.length>0){
+                            for( var i in res){
+                                str+='<li class="bw ptb30 border-r1 flex_sb plr30 mb20" data-macno="'+res[i].macno+'">' +
+                                    '<span class="flex_a flex_column"><em class="mb10">'+res[i].title+'</em><em>编号:'+res[i].macno+'</em></span>' +
+                                    '<span class="font15 kong">'+(res[i].status==1?"空闲":(res[i].status==2?"使用中":"<font color='red'>离线</font>"))+'</span>' +
+                                    '</li>'
+                            }
+                        }else{
+                            me.lock();
+                            me.noData();
+                        }
+                        // 为了测试，延迟1秒加载
+                        setTimeout(function(){
+                            $('ul').append(str);
+                            me.resetload();
+                        },1000);
+                    }else if(ret.code==-1){
+                        dlctipbox.show('登录超时，请重新登录')
+                    }else{
+                        me.lock();
+                        me.noData();
+                        me.resetload();
+                    }
+                });
+            },
+            threshold : 50
+        });
+    });
+
+
+
+    <!--详情页-->
+    $('ul').on('click','li',function(){
+        location.href='deviceDetail.html?macno='+$(this).data('macno')
+    })
+</script>
